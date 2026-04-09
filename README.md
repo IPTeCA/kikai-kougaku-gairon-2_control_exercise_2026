@@ -12,10 +12,18 @@ Lesson / Exercise は、最終的に `30_GliderSample/example03/60_example03.ino
 
 | ボード | 主な用途 | 内蔵 IMU | 主に使うフォルダ |
 |--------|----------|----------|------------------|
-| **Seeed Studio XIAO nRF52840（Sense 推奨）** | LED / Serial / Servo / IMU / 姿勢推定 | LSM6DS3 | `Lesson01`〜`Lesson10`, `Lesson13`, `Lesson15` |
-| **Seeed Studio XIAO ESP32-C3** | `espnow-uart-passthrough` による UART over ESP-NOW（2 台間でシリアル行を中継） | なし | `Lesson11`〜`Lesson14`, `Exercise04` |
+| **Seeed Studio XIAO nRF52840（Sense 推奨）** | LED / Serial / Servo / IMU / 姿勢推定 | LSM6DS3 | `Lesson01`〜`Lesson10`, `Lesson10_5`, `Lesson13`, `Lesson15`, `Exercise05` |
+| **Seeed Studio XIAO ESP32-C3** | `espnow-uart-passthrough` による UART over ESP-NOW（2 台間でシリアル行を中継） | なし | `Lesson11`〜`Lesson14`, `Exercise04`, `Exercise05` |
 
 ### Arduino IDE：ボードマネージャとボード選択
+
+まず Arduino IDE の **プリファレンス（Preferences）**で、ボードマネージャの追加URLを設定します。
+
+1. Arduino IDE → `ファイル` → `環境設定...`（Preferences）
+2. `追加のボードマネージャのURL` に、次を追加（複数ある場合は改行またはカンマ区切り）
+   - Seeed（XIAO nRF52840）：`https://files.seeedstudio.com/arduino/package_seeeduino_boards_index.json`
+   - Espressif（XIAO ESP32-C3）：`https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`
+3. `ツール` → `ボード` → `ボードマネージャ...` から必要なパッケージをインストールし、スケッチごとにボードを選びます。
 
 | ボード | ボードマネージャ（追加パッケージ） | スケッチで選ぶボード例 |
 |--------|-----------------------------------|------------------------|
@@ -103,6 +111,7 @@ nRF52840 には Seeed が **2 種類の Arduino ボードパッケージ**を提
 | `Lesson08` | IMU の加速度・ジャイロ取得 |
 | `Lesson09` | Madgwick による姿勢推定 |
 | `Lesson10` | 姿勢に応じた LED 表示 |
+| `Lesson10_5` | X 軸加速度ピークの LED / Serial（Lesson 10.5 補足） |
 | `Exercise03` | 姿勢に応じたサーボ制御 |
 | `Lesson11` | `espnow-uart-passthrough` の導入と `/mac` での MAC 確認 |
 | `Lesson12` | PC シリアルモニタ間で 1 行テキストを無線中継 |
@@ -110,11 +119,12 @@ nRF52840 には Seeed が **2 種類の Arduino ボードパッケージ**を提
 | `Lesson14` | `/help`, `/mac`, `/stat` とブロードキャスト確認 |
 | `Exercise04` | 外部 UART 機器の文字列を ESP-NOW で中継 |
 | `Lesson15` | `HzSleep` による一定周期ループ |
+| `Exercise05` | Lesson16 相当の離散 P/PD/PID（pitch→サーボ）を、`Serial1` と ESP32-C3×2・ESP-NOW で無線コンソール接続（3 枚構成） |
 
 ### 教材まわりの注意
 
-- `Lesson11`〜`Exercise04` の ESP-NOW 教材は、`sassa4771/espnow-uart-passthrough` の `.h/.cpp` を Lesson/Exercise フォルダにコピーして同梱しています（スケッチは同ディレクトリの `espnow_uart_bridge.h` を参照します）。
-- `Lesson12`, `Lesson14`, `Exercise04` は ESP-NOW の相手側として **XIAO ESP32-C3 を 2 台**使う想定です。
+- `Lesson11`〜`Exercise05` の ESP-NOW 教材は、`sassa4771/espnow-uart-passthrough` の `.h/.cpp` を Lesson/Exercise フォルダにコピーして同梱しています（スケッチは同ディレクトリの `espnow_uart_bridge.h` を参照します）。
+- `Lesson12`, `Lesson14`, `Exercise04`, `Exercise05` は ESP-NOW の相手側として **XIAO ESP32-C3 を 2 台**使う想定です。
 - `Lesson13` は 1 つの `.ino` に nRF52840 側と ESP32-C3 側の処理を同居させています。
 - `Lesson16` は `10_Lesson/Lesson.md` に見出しのみで、今回の整備対象からは外しています。
 
@@ -122,7 +132,7 @@ nRF52840 には Seeed が **2 種類の Arduino ボードパッケージ**を提
 
 ## 5. Exercise の説明
 
-演習の**課題全文・条件・解答例へのリンク**は `20_Exercise/Exercise.md` にまとめています。各フォルダ `20_Exercise/ExerciseNN/` に解答例スケッチ `ExerciseNN.ino` があります。
+演習の**課題全文・条件・解答例へのリンク**は `20_Exercise/Exercise.md` にまとめています。各フォルダ `20_Exercise/ExerciseNN/` に解答例スケッチ `ExerciseNN.ino` があります（**`Exercise05` は複数ボード用にサブフォルダ分け**）。
 
 ※ **Exercise は課題です。** 学習のねらいのため、**`30_GliderSample/` のサンプルや、解答例（`ExerciseNN.ino` など）を先に読んだり流用したりせず**、課題文とこれまでの Lesson をもとに**自分で取り組んでから**、必要に応じて参照する進め方を推奨します。
 
@@ -132,6 +142,7 @@ nRF52840 には Seeed が **2 種類の Arduino ボードパッケージ**を提
 | `Exercise02` | `Lesson05`〜`Lesson07` | キーボードで 3 つのサーボを操作（キー割当・角度表示・`±90°` 制限など）。 |
 | `Exercise03` | `Lesson08`〜`Lesson10` | IMU の姿勢に応じてサーボを駆動（`roll` / `pitch` 割当、`±45°` 制限、姿勢のシリアル出力など）。発展でサーボ3や `yaw` も可。 |
 | `Exercise04` | `Lesson13`, `Lesson14` | nRF の IMU 行を `Serial1` で受けつつ、USB から `/help` 等と任意行（サーボ指示など）を ESP-NOW で送るブリッジ。同梱の `espnow_uart_bridge.*` 等を利用。 |
+| `Exercise05` | `Lesson15`, **Lesson16**, `Exercise04` | Lesson16 と同等の離散 P/PD/PID を nRF で動かし、コンソールを `Serial1`＋ESP32-C3（機体・地上の 2 台）と ESP-NOW で接続する。解答例は `Exercise05_Glider_nrf52840` 等のサブフォルダ。 |
 
 ---
 

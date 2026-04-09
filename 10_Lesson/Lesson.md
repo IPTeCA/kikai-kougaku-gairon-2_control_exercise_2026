@@ -257,6 +257,19 @@ Serial.println(gz);
 
 ---
 
+## Lesson10.5: X 軸加速度のピークを LED / Serial で見る（補足・XIAO nRF52840）
+**目標** 短い窓での信号平均の最大値を `sig_max` として追い、しきい値で LED の色を変え、シリアルで監視する
+
+### 学習内容
+- `acc_.x` を信号として `max_signal()` で移動平均に基づくピークを更新
+- 一定条件（`acc_.z` がしきい値未満が約 3 秒）で白点滅のあとピークを `reset_sigs()` でリセット
+- `Madgwick` は `begin` のみ（姿勢推定は未使用。Lesson09 と組み合わせる場合は `updateIMU` を検討）
+
+### サンプルコード
+`10_Lesson/Lesson10_5/Lesson10_5.ino`
+
+---
+
 ## Lesson11: ESP-NOW の導入（XIAO ESP32-C3）
 **目標** ESP-NOW を初期化して `/mac` で MAC を確認する
 

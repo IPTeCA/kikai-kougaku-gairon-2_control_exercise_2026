@@ -1,10 +1,14 @@
-// 対象ボード: Seeed XIAO nRF52840
+// 対象ボード: Seeed XIAO nRF52840（Sense）
+// Lesson 10.5 補足: X 軸加速度のピークを LED 段階表示・Serial 出力
 
-#include <LSM6DS3.h>
+#include <LSM6DS3.h>  // Seeed Arduino LSM6DS3
 #include <Wire.h>
 #include <MadgwickAHRS.h>
 
-//#define MEASURING_FREQ (1660)
+#define N 3
+float sig, sig_m, sig_s, sig_max, sig_[N];
+int i_sig;
+unsigned long t_max;
 #define MEASURING_FREQ (20)
 
 #define LED_OFF     digitalWrite(LED_RED, HIGH);digitalWrite(LED_GREEN, HIGH);digitalWrite(LED_BLUE, HIGH);
@@ -16,9 +20,7 @@
 #define YELLOW_ON   digitalWrite(LED_RED, LOW); digitalWrite(LED_GREEN, LOW); digitalWrite(LED_BLUE, HIGH);
 #define WHITE_ON    digitalWrite(LED_RED, LOW); digitalWrite(LED_GREEN, LOW); digitalWrite(LED_BLUE, LOW);
 
-
-//Create a instance of class LSM6DS3
-LSM6DS3 IMU(I2C_MODE, 0x6A);  //I2C device address 0x6A
+LSM6DS3 IMU(I2C_MODE, 0x6A);
 
 typedef struct {
   float x;
@@ -26,25 +28,19 @@ typedef struct {
   float z;
 } pos3d_t;
 
-unsigned long t=0, t_=0;
-pos3d_t gyr_ = { 0 };
+unsigned long t = 0, t_ = 0;
 pos3d_t acc_ = { 0 };
-pos3d_t ang_ = { 0 };
-double mes_time_ = 1.0 / (double) MEASURING_FREQ * 1000.0;
+double mes_time_ = 1.0 / (double)MEASURING_FREQ * 1000.0;
 Madgwick m_;
 
-void print_header() {
-  Serial.println("Roll, Pitch, Yaw");
-}
-
 void print_values() {
-  Serial.print(t);
+  Serial.print(sig_max);
   Serial.print(",");
-  Serial.print(acc_.x);
+  Serial.print(t_max);
   Serial.print(",");
-  Serial.print(acc_.y);
+  Serial.print(sig);
   Serial.print(",");
-  Serial.print(acc_.z);
+  Serial.print(sig_m);
   Serial.println("");
 }
 
@@ -55,7 +51,6 @@ void read_acc() {
 }
 
 void setup() {
-  // 初期化
   pinMode(LED_RED, OUTPUT);
   pinMode(LED_BLUE, OUTPUT);
   pinMode(LED_GREEN, OUTPUT);
@@ -66,37 +61,56 @@ void setup() {
 
   Serial.begin(115200);
 
-  while (!Serial) {
-    RED_ON delay(500); LED_OFF  delay(500);
-  }
-
   IMU.settings.gyroRange = 2000;
   IMU.settings.accelRange = 4;
 
   while (IMU.begin() != 0) {
-    GREEN_ON delay(500); LED_OFF  delay(500);
+    GREEN_ON delay(500);
+    LED_OFF delay(500);
   }
 
-  IMU.writeRegister(LSM6DS3_ACC_GYRO_CTRL2_G,  0x8C);
+  IMU.writeRegister(LSM6DS3_ACC_GYRO_CTRL2_G, 0x8C);
   IMU.writeRegister(LSM6DS3_ACC_GYRO_CTRL1_XL, 0x8A);
-  IMU.writeRegister(LSM6DS3_ACC_GYRO_CTRL7_G,  0x00);
+  IMU.writeRegister(LSM6DS3_ACC_GYRO_CTRL7_G, 0x00);
   IMU.writeRegister(LSM6DS3_ACC_GYRO_CTRL8_XL, 0x09);
 
-  // 測定周波数  
   m_.begin((int)MEASURING_FREQ);
+
+  reset_sigs();
+}
+
+void reset_sigs() {
+  int i;
+  sig = sig_m = sig_s = sig_max = 0;
+  for (i = 0; i < N; i++) sig_[i] = 0;
+  i_sig = 0;
+  t_max = 0;
 }
 
 void sensing() {
   t_ = t;
-  t =  millis();
+  t = millis();
   read_acc();
 }
 
-unsigned char mode=7, f_mode0=0;
-unsigned long t_mode0=0;
+void max_signal() {
+  sig_s += sig - sig_[i_sig];
+  sig_[i_sig] = sig;
+  if (++i_sig > N) i_sig = 0;
+  sig_[i_sig] = sig;
+
+  sig_m = sig_s / N;
+  if (sig_m >= sig_max) {
+    sig_max = sig_m;
+    t_max = t;
+  }
+}
+
+unsigned char mode = 0, f_mode0 = 0;
+unsigned long t_mode0 = 0;
 
 void mode_select() {
-  if(acc_.z < -0.6) {
+  if (acc_.z < -0.6) {
     if (f_mode0 == 0) {
       f_mode0 = 1;
       t_mode0 = t;
@@ -107,76 +121,56 @@ void mode_select() {
       }
     }
   } else {
-    f_mode0=0;
+    f_mode0 = 0;
   }
 
-  switch(mode) {
+  switch (mode) {
     case 55:
-      detect_mode();
-    break;
-    case 1:
-      RED_ON;
-    break;
-    case 2:
-      BLUE_ON;
-    break;
-    case 3:
-      MAGENTA_ON;
-    break;
-    case 4:
-      GREEN_ON;
-    break;
-    case 5:
-      YELLOW_ON;
-    break;
-    case 6:
-      CYAN_ON;
-    break;
-    case 7:
-      WHITE_ON;
-    break;
+      WHITE_ON delay(500);
+      LED_OFF delay(500);
+      WHITE_ON delay(500);
+      LED_OFF delay(500);
+      WHITE_ON delay(500);
+      LED_OFF delay(500);
+      WHITE_ON delay(250);
+      LED_OFF delay(250);
+      WHITE_ON delay(250);
+      LED_OFF delay(250);
+      WHITE_ON delay(250);
+      LED_OFF delay(250);
+      WHITE_ON delay(250);
+      LED_OFF delay(250);
+      reset_sigs();
+      mode = 0;
+      break;
   }
 }
 
-void detect_mode() {
-  float x, y, z;
-  WHITE_ON delay(500); LED_OFF  delay(500);
-  WHITE_ON delay(500); LED_OFF  delay(500);
-  WHITE_ON delay(500); LED_OFF  delay(500);
-  WHITE_ON delay(250); LED_OFF  delay(250);
-  WHITE_ON delay(250); LED_OFF  delay(250);
-  WHITE_ON delay(250); LED_OFF  delay(250);
-  WHITE_ON delay(250); LED_OFF  delay(250);
-  read_acc();
-
-  x=acc_.x; if(x < 0) x =-x;
-  y=acc_.y; if(y < 0) y =-y;
-  z=acc_.z; if(z < 0) z =-z;
-
-  if (x > y) {
-    if(x > z) {
-      if(acc_.x > 0) mode=1; else mode=2;
-    } else {
-      if(acc_.z > 0) mode=5; else mode=6;
-    }
-  } else {
-    if(y > z) {
-      if(acc_.y > 0) mode = 3; else mode = 4;
-    } else {
-      if(acc_.z > 0) mode=5; else mode=6;
-    }
-  }
-  Serial.println("");
-  print_values();  
-  Serial.println(mode);
-  Serial.println("");
-}
-
+#define VAL5 2.5
+#define VAL4 2.0
+#define VAL3 1.5
+#define VAL2 1.0
+#define VAL1 0.5
 
 void loop() {
   sensing();
   mode_select();
-  // print
+
+  sig = acc_.x;
+  max_signal();
+
+  if (sig_max > VAL5) {
+    RED_ON;
+  } else if (sig_max > VAL4) {
+    MAGENTA_ON;
+  } else if (sig_max > VAL3) {
+    YELLOW_ON;
+  } else if (sig_max > VAL2) {
+    CYAN_ON;
+  } else if (sig_max > VAL1) {
+    BLUE_ON;
+  } else {
+    GREEN_ON;
+  }
   print_values();
-//  delay(mes_time_);
 }
