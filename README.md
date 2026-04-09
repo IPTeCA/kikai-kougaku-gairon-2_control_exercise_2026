@@ -12,7 +12,7 @@ Lesson / Exercise は、最終的に `30_GliderSample/example03/60_example03.ino
 
 | ボード | 主な用途 | 内蔵 IMU | 主に使うフォルダ |
 |--------|----------|----------|------------------|
-| **Seeed Studio XIAO nRF52840（Sense 推奨）** | LED / Serial / Servo / IMU / 姿勢推定 | LSM6DS3 | `Lesson01`〜`Lesson10`, `Lesson10_5`, `Lesson13`, `Lesson15`, `Exercise05` |
+| **Seeed Studio XIAO nRF52840（Sense 推奨）** | LED / Serial / Servo / IMU / 姿勢推定 / 離散 PID | LSM6DS3 | `Lesson01`〜`Lesson10`, `Lesson10_5`, `Lesson13`, `Lesson15`, `Lesson15_ServoTarget`, `Lesson16`, `Lesson17`, `Exercise05` |
 | **Seeed Studio XIAO ESP32-C3** | `espnow-uart-passthrough` による UART over ESP-NOW（2 台間でシリアル行を中継） | なし | `Lesson11`〜`Lesson14`, `Exercise04`, `Exercise05` |
 
 ### Arduino IDE：ボードマネージャとボード選択
@@ -76,6 +76,7 @@ nRF52840 には Seeed が **2 種類の Arduino ボードパッケージ**を提
 | `10_Lesson/` | 今年度向けに再構成した授業 Lesson（フォルダ別）と `Lesson.md` |
 | `20_Exercise/` | `Exercise.md`、各演習フォルダ、**解答例** |
 | `30_GliderSample/` | Lesson / Exercise 後に読む機体制御サンプル |
+| `40_GraphAndViewer/` | PC 側のシリアル可視化・簡易コンソール送信用 Python スクリプト（詳細は **§8**） |
 | `attachments/` | 授業用動画（`.mp4`）・画像（`.png` / `.jpg`） |
 
 ---
@@ -119,14 +120,17 @@ nRF52840 には Seeed が **2 種類の Arduino ボードパッケージ**を提
 | `Lesson14` | `/help`, `/mac`, `/stat` とブロードキャスト確認 |
 | `Exercise04` | 外部 UART 機器の文字列を ESP-NOW で中継 |
 | `Lesson15` | `HzSleep` による一定周期ループ |
+| `Lesson15_ServoTarget` | Serial で目標角を入れてサーボを動かす（離散 PID の前段） |
+| `Lesson16` | 離散 P / PD / PID（IMU の pitch → サーボ）。Serial でモード・ゲイン変更 |
+| `Lesson17` | 実機向けの工夫（D 項にジャイロ、`started` まで I を溜めない、サーボ更新の間引き） |
 | `Exercise05` | Lesson16 相当の離散 P/PD/PID（pitch→サーボ）を、`Serial1` と ESP32-C3×2・ESP-NOW で無線コンソール接続（3 枚構成） |
 
 ### 教材まわりの注意
 
+- 各 Lesson の目的・学習内容・補足（`Lesson16` / `Lesson17` を含む）は **`10_Lesson/Lesson.md`** にまとめています。
 - `Lesson11`〜`Exercise05` の ESP-NOW 教材は、`sassa4771/espnow-uart-passthrough` の `.h/.cpp` を Lesson/Exercise フォルダにコピーして同梱しています（スケッチは同ディレクトリの `espnow_uart_bridge.h` を参照します）。
 - `Lesson12`, `Lesson14`, `Exercise04`, `Exercise05` は ESP-NOW の相手側として **XIAO ESP32-C3 を 2 台**使う想定です。
 - `Lesson13` は 1 つの `.ino` に nRF52840 側と ESP32-C3 側の処理を同居させています。
-- `Lesson16` は `10_Lesson/Lesson.md` に見出しのみで、今回の整備対象からは外しています。
 
 ---
 
@@ -212,3 +216,47 @@ nRF52840 には Seeed が **2 種類の Arduino ボードパッケージ**を提
 「送信元シーケンス」とは、**テレメトリやログを送る側（多くは機体上のマイコン）が、そのデータに付ける通し番号**を指します。例として、制御ループや無線送信のたびに 0, 1, 2, … と増やす、といった使い方を想定します。受信側・記録側では、この番号で **パケット欠損や順序の逆転を検出**したり、加速度・姿勢・サーボ出力など **同一時刻のサンプル同士を対応付け**たりします。
 
 （実装の都合で名前や単位はサンプルコードに合わせてよいが、**無線で上記相当のテレメトリ・PID 調整・サーボ調整が可能**であることを満たすこと。）
+
+---
+
+## 8. 40_GraphAndViewer（PC 側ツール）
+
+マイコンから送るテレメトリを **PC でグラフ表示**したり、**キー操作でシリアルへコマンドを送ったり**、**3D で姿勢を可視化**したりするための補助スクリプトです（授業・実験の任意利用）。
+
+### Python 環境
+
+- **推奨: Python 3.10 以上**（`viewer_serialsend.py` が `str | None` などの記法を使用しています）。
+- 仮想環境の例（リポジトリのルートで）:
+
+```text
+python -m venv .venv
+.\.venv\Scripts\activate
+pip install -r 40_GraphAndViewer/requirements.txt
+```
+
+（macOS / Linux では `source .venv/bin/activate` など。）
+
+### スクリプト
+
+| ファイル | 内容 |
+|----------|------|
+| `viewer_serialsend.py` | `imu_control` 系テレメトリ（`seq`, `t_ms`, `dt_ms`, 加速度・ジャイロ・姿勢・`s0`〜`s2` など）を受信して **matplotlib** でプロット。グラフウィンドウの **キー入力でシリアルに 1 文字コマンドを送信**。`--save` で CSV 保存。起動例: `python viewer_serialsend.py --port COM4`（`--baud`, `--window`, `--plot` などは `--help` 参照）。 |
+| `paperplane05-YPR.py` | **OpenGL（GLUT）** で紙飛行機モデルを 3D 表示。シリアルから姿勢を読み取る想定。**COM ポートはコード内が `COM3` 固定などになっているため、自分の環境に合わせて編集**してください。 |
+
+**Windows の注意（`paperplane05-YPR.py`）:** GLUT を使うため、環境によっては **freeglut などの DLL が別途必要**になることがあります。表示できない場合は PyOpenGL / freeglut の導入手順を確認してください。
+
+**シリアル送受信のプロトコル・行形式・キー送信の対応**は、別紙 [`40_GraphAndViewer/PROTOCOL.md`](40_GraphAndViewer/PROTOCOL.md) にまとめています。
+
+### 依存ライブラリとバージョン
+
+`pip install -r 40_GraphAndViewer/requirements.txt` で入る **固定版の一覧**は `40_GraphAndViewer/requirements.txt` に記載しています（`pip freeze` 由来）。
+
+**スクリプトから直接 import する主なパッケージ**は次のとおりです。
+
+| パッケージ | バージョン（`requirements.txt` 時点） | 用途 |
+|------------|----------------------------------------|------|
+| `pyserial` | 3.5 | USB シリアル通信 |
+| `matplotlib` | 3.10.8 | `viewer_serialsend.py` のリアルタイムグラフ |
+| `PyOpenGL` | 3.1.10 | `paperplane05-YPR.py` の 3D 描画（GL / GLU / GLUT） |
+
+`matplotlib` の依存として **`numpy`**, **`pillow`**, **`contourpy`** などが同梱されます。上記以外のパッケージ名・版番号は **`40_GraphAndViewer/requirements.txt`** を参照してください。
