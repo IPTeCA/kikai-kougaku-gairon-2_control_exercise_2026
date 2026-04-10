@@ -72,3 +72,20 @@ Lesson13（nRF の IMU 行を `Serial1` で受け取る）と Lesson14（USB で
 解答例:
 
 - [Exercise04.ino](D:/GitHub/kikai-kougaku-gairon-2_control_exercise_2026/20_Exercise/Exercise04/Exercise04.ino)
+
+## Exercise05
+
+Lesson15（一定周期ループ）、Lesson16（P/PD/PID）、Exercise04（ESP-NOW と UART のブリッジ）を前提として、**XIAO nRF52840 上で Lesson16 と同等の P/PD/PID（IMU の pitch → サーボ）**を実装してください。Lesson16 では USB `Serial` からコマンドを受けますが、本課題では **コンソールを `Serial1` に置き、機体側・地上側の XIAO ESP32-C3 各 1 台と ESP-NOW により無線接続する**構成（計 3 枚）とします。
+
+条件:
+
+- **nRF52840 側**: 無線コンソールは `Serial1`（解答例では `RADIO_SERIAL`）。キー `1` / `2` / `3` で P / PD / PID、行コマンドで `kp <値>` / `ki <値>` / `kd <値>` および `help` / `status` を扱えること（仕様の詳細は解答例のヘルプ出力を参照してよい）
+- **ESP32-C3 側（2 台）**: ESP-NOW の共通処理は、`20_Exercise/Exercise05/` の各サブフォルダに同梱している `espnow_uart_bridge.*` / `uart_line_protocol.*` を使うこと（`espnow_uart_bridge.h` を `#include` して利用する。Exercise04 と同様の方針）
+- UART ボーレートは `115200` とすること
+- 送信先 `peerMac` を相手 ESP32-C3 の MAC アドレスに設定すること（検証時はブロードキャスト可）
+
+解答例（ボードごとにサブフォルダが分かれています）:
+
+- [Exercise05_Glider_nrf52840.ino](D:/GitHub/kikai-kougaku-gairon-2_control_exercise_2026/20_Exercise/Exercise05/Exercise05_Glider_nrf52840/Exercise05_Glider_nrf52840.ino)
+- [Exercise05_Glider_esp32c3.ino](D:/GitHub/kikai-kougaku-gairon-2_control_exercise_2026/20_Exercise/Exercise05/Exercise05_Glider_esp32c3/Exercise05_Glider_esp32c3.ino)
+- [Exercise05_PC_esp32c3.ino](D:/GitHub/kikai-kougaku-gairon-2_control_exercise_2026/20_Exercise/Exercise05/Exercise05_PC_esp32c3/Exercise05_PC_esp32c3.ino)

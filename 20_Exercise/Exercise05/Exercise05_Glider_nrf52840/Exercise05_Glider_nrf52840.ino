@@ -1,5 +1,5 @@
 // Seeed XIAO nRF52840 (Glider side)
-// Lesson16 と同一の離散 P/PD/PID。USB 相当のシリアルは Serial1（ESP32-C3 経由 ESP-NOW）へ置き換え。
+// Lesson16 と同一の P/PD/PID。USB 相当のシリアルは Serial1（ESP32-C3 経由 ESP-NOW）へ置き換え。
 
 #include <LSM6DS3.h>
 #include <Wire.h>
@@ -226,8 +226,8 @@ void setup() {
 
   prevUs = micros();
 
-  USB_SERIAL.println("Exercise05 (nRF52840): Lesson16 discrete P/PD/PID");
-  RADIO_SERIAL.println("Exercise05 (nRF52840): Lesson16 discrete P/PD/PID");
+  USB_SERIAL.println("Exercise05 (nRF52840): Lesson16 P/PD/PID");
+  RADIO_SERIAL.println("Exercise05 (nRF52840): Lesson16 P/PD/PID");
   printHelp(USB_SERIAL);
   printHelp(RADIO_SERIAL);
   printStatus(USB_SERIAL);

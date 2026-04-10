@@ -344,7 +344,7 @@ Serial.println(gz);
 
 ---
 
-## Lesson16: 離散 P / PD / PID（IMU pitch → サーボ）
+## Lesson16: P / PD / PID（IMU pitch → サーボ）
 **目標** PID の各項（P/I/D）が挙動にどう効くかを観察する
 
 ### 学習内容

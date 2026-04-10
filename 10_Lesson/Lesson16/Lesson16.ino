@@ -91,7 +91,7 @@ static void printStatus() {
 }
 
 static void printHelp() {
-  LESSON_SERIAL.println("Lesson16: Discrete P/PD/PID + gain tuning");
+  LESSON_SERIAL.println("Lesson16: P/PD/PID + gain tuning");
   LESSON_SERIAL.println("Keys: 1=P, 2=PD, 3=PID");
   LESSON_SERIAL.println("Line commands:");
   LESSON_SERIAL.println("  kp <v> / ki <v> / kd <v>");
@@ -207,7 +207,7 @@ void setup() {
 
   prevUs = micros();
 
-  LESSON_SERIAL.println("Lesson16: Discrete P/PD/PID");
+  LESSON_SERIAL.println("Lesson16: P/PD/PID");
   printHelp();
   printStatus();
 }

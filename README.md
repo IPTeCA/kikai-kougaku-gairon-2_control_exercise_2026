@@ -12,7 +12,7 @@ Lesson / Exercise は、最終的に `30_GliderSample/example03/60_example03.ino
 
 | ボード | 主な用途 | 内蔵 IMU | 主に使うフォルダ |
 |--------|----------|----------|------------------|
-| **Seeed Studio XIAO nRF52840（Sense 推奨）** | LED / Serial / Servo / IMU / 姿勢推定 / 離散 PID | LSM6DS3 | `Lesson01`〜`Lesson10`, `Lesson10_5`, `Lesson13`, `Lesson15`, `Lesson15_ServoTarget`, `Lesson16`, `Lesson17`, `Exercise05` |
+| **Seeed Studio XIAO nRF52840（Sense 推奨）** | LED / Serial / Servo / IMU / 姿勢推定 / PID | LSM6DS3 | `Lesson01`〜`Lesson10`, `Lesson10_5`, `Lesson13`, `Lesson15`, `Lesson15_ServoTarget`, `Lesson16`, `Lesson17`, `Exercise05` |
 | **Seeed Studio XIAO ESP32-C3** | `espnow-uart-passthrough` による UART over ESP-NOW（2 台間でシリアル行を中継） | なし | `Lesson11`〜`Lesson14`, `Exercise04`, `Exercise05` |
 
 ### Arduino IDE：ボードマネージャとボード選択
@@ -120,10 +120,10 @@ nRF52840 には Seeed が **2 種類の Arduino ボードパッケージ**を提
 | `Lesson14` | `/help`, `/mac`, `/stat` とブロードキャスト確認 |
 | `Exercise04` | 外部 UART 機器の文字列を ESP-NOW で中継 |
 | `Lesson15` | `HzSleep` による一定周期ループ |
-| `Lesson15_ServoTarget` | Serial で目標角を入れてサーボを動かす（離散 PID の前段） |
-| `Lesson16` | 離散 P / PD / PID（IMU の pitch → サーボ）。Serial でモード・ゲイン変更 |
+| `Lesson15_ServoTarget` | Serial で目標角を入れてサーボを動かす（PID の前段） |
+| `Lesson16` | P / PD / PID（IMU の pitch → サーボ）。Serial でモード・ゲイン変更 |
 | `Lesson17` | 実機向けの工夫（D 項にジャイロ、`started` まで I を溜めない、サーボ更新の間引き） |
-| `Exercise05` | Lesson16 相当の離散 P/PD/PID（pitch→サーボ）を、`Serial1` と ESP32-C3×2・ESP-NOW で無線コンソール接続（3 枚構成） |
+| `Exercise05` | Lesson16 相当の P/PD/PID（pitch→サーボ）を、`Serial1` と ESP32-C3×2・ESP-NOW で無線コンソール接続（3 枚構成） |
 
 ### 教材まわりの注意
 
@@ -146,7 +146,7 @@ nRF52840 には Seeed が **2 種類の Arduino ボードパッケージ**を提
 | `Exercise02` | `Lesson05`〜`Lesson07` | キーボードで 3 つのサーボを操作（キー割当・角度表示・`±90°` 制限など）。 |
 | `Exercise03` | `Lesson08`〜`Lesson10` | IMU の姿勢に応じてサーボを駆動（`roll` / `pitch` 割当、`±45°` 制限、姿勢のシリアル出力など）。発展でサーボ3や `yaw` も可。 |
 | `Exercise04` | `Lesson13`, `Lesson14` | nRF の IMU 行を `Serial1` で受けつつ、USB から `/help` 等と任意行（サーボ指示など）を ESP-NOW で送るブリッジ。同梱の `espnow_uart_bridge.*` 等を利用。 |
-| `Exercise05` | `Lesson15`, **Lesson16**, `Exercise04` | Lesson16 と同等の離散 P/PD/PID を nRF で動かし、コンソールを `Serial1`＋ESP32-C3（機体・地上の 2 台）と ESP-NOW で接続する。解答例は `Exercise05_Glider_nrf52840` 等のサブフォルダ。 |
+| `Exercise05` | `Lesson15`, **Lesson16**, `Exercise04` | Lesson16 と同等の P/PD/PID を nRF で動かし、コンソールを `Serial1`＋ESP32-C3（機体・地上の 2 台）と ESP-NOW で接続する。解答例は `Exercise05_Glider_nrf52840` 等のサブフォルダ。 |
 
 ---
 
@@ -179,8 +179,8 @@ nRF52840 には Seeed が **2 種類の Arduino ボードパッケージ**を提
 | フォルダ | 主な内容 |
 |----------|----------|
 | `example01` | 姿勢角からサーボへ至る **P 制御の最小例**（閉ループの骨格） |
-| `example02` | **離散 PID**（積分・微分の更新形）をスケッチ上で揃えた例 |
-| `example03` | 姿勢と **離散 PID**、モード（手動／自動／飛行など）。到達イメージの一例として `60_example03.ino` を参照 |
+| `example02` | **PID**（積分・微分の更新形）をスケッチ上で揃えた例 |
+| `example03` | 姿勢と **PID**、モード（手動／自動／飛行など）。到達イメージの一例として `60_example03.ino` を参照 |
 | `example04` | `example03` の発展（**キャリブレーション**、積分の扱いなど） |
 | `example05` | 角度の平滑化、**D 項の安定化**など |
 | `example-4pin_flight` | **4 サーボ**（エレベータ／エルロン／ラダー等）とミキシング |

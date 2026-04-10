@@ -1,6 +1,6 @@
 # example05（元: 60_example05）
 
-元ファイル：`SampleProgram/60_example05/60_example05.ino`
+元ファイル：`SampleProgram/example05/example05.ino`
 
 ## これは何？
 
